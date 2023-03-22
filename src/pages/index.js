@@ -2,8 +2,14 @@
 
 import Head from 'next/head';
 import styles from '@/styles/Home.module.css';
+import { google } from 'googleapis';
+import React from 'react';
 
 export default function Home({ res }) {
+	React.useEffect(() => {
+		console.log(res);
+	}, []);
+
 	return (
 		<>
 			<Head>
@@ -13,14 +19,29 @@ export default function Home({ res }) {
 				<link rel='icon' href='/favicon.ico' />
 			</Head>
 			<main className={styles.main}>
-				<div>Welcome! {res}</div>
+				<div>Welcome!</div>
 			</main>
 		</>
 	);
 }
 
 export async function getServerSideProps() {
-	const res = 'testt!';
+	const auth = await google.auth.getClient({
+		scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+	});
+
+	const sheets = google.sheets({ version: 'v4', auth });
+
+	const range = `Sheet1!A1:B10`;
+
+	const response = await sheets.spreadsheets.values.get({
+		spreadsheetId: process.env.SHEET_ID,
+		range,
+	});
+
+	console.log(response.data.values);
+
+	const res = response.data.values;
 
 	return {
 		props: {
